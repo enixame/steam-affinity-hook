@@ -137,6 +137,42 @@ LD_PRELOAD="/chemin/libaffinity_hook32.so:/chemin/libaffinity_hook.so" \
 steam
 ```
 
+### Comportement par défaut sans `AFFINITY_HOOK_MATCH` et sans `AFFINITY_HOOK_REWRITE`
+
+Si aucune de ces variables n'est définie :
+
+- `AFFINITY_HOOK_MATCH`
+- `AFFINITY_HOOK_REWRITE`
+
+alors le hook utilise le comportement suivant :
+
+- il considère comme masque CPU "normal" le masque complet machine `0-(nproc --all - 1)`
+- si un appel demande déjà ce masque complet, le hook laisse passer l'appel
+- si un appel demande un masque plus restrictif, le hook le réécrit automatiquement vers `0-(nproc --all - 1)`
+
+Autrement dit, sans configuration explicite, le hook agit comme un mode :
+
+> **force full CPU mask**
+
+Exemple :
+
+- machine avec 8 CPU logiques
+- masque complet = `0-7`
+
+Alors :
+
+- demande `0-7` → **pass**
+- demande `0,2,4,6` → **rewrite vers `0-7`**
+- demande `0,2` → **rewrite vers `0-7`**
+
+Commande correspondante :
+
+```bash
+AFFINITY_HOOK_LOG=1 \
+LD_PRELOAD="/chemin/libaffinity_hook32.so:/chemin/libaffinity_hook.so" \
+steam
+```
+
 ## Vérification
 
 ### Vérifier que la bibliothèque est chargée
